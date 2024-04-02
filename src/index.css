@@ -61,15 +61,15 @@ button:hover {
 .eye{
   flex: 1;
   filter: invert(100%);
-  width: 410px;
-  height: 410px; 
+  width: 341px;
+  height: 341x; 
   /* do not set it fix size... make a proper grid lazy man */
 }
 
 @-moz-document url-prefix() {
   .eye {
-    width: 510px;
-    height: 510px; 
+    width: 430px;
+    height: 430px; 
   }
 }  
 
