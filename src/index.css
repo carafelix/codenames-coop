@@ -48,7 +48,7 @@ button {
   transition: border-color 0.25s;
 }
 button.gameCard {
-  padding: 2em;
+  padding: 1.6em;
   margin: 0.5em;
   outline: 1px solid white;
 }
