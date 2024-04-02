@@ -61,8 +61,8 @@ button:hover {
 .eye{
   flex: 1;
   filter: invert(100%);
-  width: 341px;
-  height: 341x; 
+  width: 346px;
+  height: 346x; 
   /* do not set it fix size... make a proper grid lazy man */
 }
 
