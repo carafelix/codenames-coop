@@ -2,7 +2,7 @@ import React from "react"
 import Color from "../utils/colors"
 import { ElementOptionSwitch } from "./tristateSwitch/ElementOptionSwitch";
 import type { switchTriStates } from "./tristateSwitch/ElementOptionSwitch";
-import { getRandomSeed, generateCoopBoard } from "../logic/generate";
+import { getRandomSeed, generateCoopBoards } from "../logic/generate";
 import noEyeImg from '../assets/no-eye.svg'
 
 export function Board(props : {
@@ -64,7 +64,7 @@ export class CoopGameUI extends React.Component<{},{
 }>{
     constructor(props : teamProps ){
         super(props)
-        const boards = generateCoopBoard(getRandomSeed())
+        const boards = generateCoopBoards(getRandomSeed())
         this.state = {
             teamSwitchButtonState: 'off',
             board: boards[0],
@@ -75,7 +75,7 @@ export class CoopGameUI extends React.Component<{},{
 
     regenerateTeamState = () => {
         this.setState((state)=>{
-            const boards = generateCoopBoard(getRandomSeed())
+            const boards = generateCoopBoards(getRandomSeed())
             return {
                 teamSwitchButtonState: state.teamSwitchButtonState,
                 board: state.teamSwitchButtonState === 'team-a' ? boards[0] : boards[1],
