@@ -2,7 +2,7 @@ import React from "react"
 import Color from "../utils/colors"
 import { ElementOptionSwitch } from "./tristateSwitch/ElementOptionSwitch";
 import type { switchTriStates } from "./tristateSwitch/ElementOptionSwitch";
-import { getRandomBoard, getRandomSeed, getGenerator } from "../logic/generate";
+import { getRandomSeed, generateCoopBoard } from "../logic/generate";
 import noEyeImg from '../assets/no-eye.svg'
 
 export function Board(props : {
@@ -14,7 +14,7 @@ export function Board(props : {
                 {
                     props.board.map((row,i)=>{
                             return (
-                                <div key={`${props.board.flat().toString()},${i}`}>
+                                <div key={`${props.board.flat().toString()},${i}`} className="boardRow">
                                     {
                                         row.map((color,j)=>{
                                             return (
@@ -37,10 +37,7 @@ export function Board(props : {
 export class GameCardButton extends React.Component<{
     color: Color,
 }>{
-    public state = {
-        marked: false
-    };
-
+    public state = { marked: false };
 
     render(){
         return (
@@ -67,25 +64,23 @@ export class CoopGameUI extends React.Component<{},{
 }>{
     constructor(props : teamProps ){
         super(props)
-        const boardA  = getRandomBoard(getGenerator(getRandomSeed()))
-        const boardB  = getRandomBoard(getGenerator(getRandomSeed())) 
+        const boards = generateCoopBoard(getRandomSeed())
         this.state = {
             teamSwitchButtonState: 'off',
-            board: boardA,
-            teamA: boardA,
-            teamB: boardB
+            board: boards[0],
+            teamA: boards[0],
+            teamB: boards[1]
         }
     }
 
     regenerateTeamState = () => {
         this.setState((state)=>{
-            const boardA = getRandomBoard(getGenerator(getRandomSeed()))
-            const boardB = getRandomBoard(getGenerator(getRandomSeed()))
+            const boards = generateCoopBoard(getRandomSeed())
             return {
                 teamSwitchButtonState: state.teamSwitchButtonState,
-                board: state.teamSwitchButtonState === 'team-a' ? boardA : boardB,
-                teamA: boardA,
-                teamB: boardB
+                board: state.teamSwitchButtonState === 'team-a' ? boards[0] : boards[1],
+                teamA: boards[0],
+                teamB: boards[1]
             }
         })
     }
