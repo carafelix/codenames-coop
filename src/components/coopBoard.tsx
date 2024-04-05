@@ -181,12 +181,6 @@ export class CoopGameUI extends React.Component<{},{
     }
 }
 
-interface cardCoordinate {
-    team : 'a' | 'b',
-    i: number,
-    j: number
-}
-
 interface boardProps {
     board: Color[][],
     team: 'a' | 'b',
