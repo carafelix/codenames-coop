@@ -3,9 +3,11 @@
   height: 24px;
   position: relative;
   width: 69px;
+  user-select: none;
 }
 
 .element-option-switch .thumb {
+  user-select: none;
   height: 20px;
   position: absolute;
   top: 2px;
