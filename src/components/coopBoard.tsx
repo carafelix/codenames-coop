@@ -7,10 +7,10 @@ import noEyeImg from '../assets/no-eye.svg'
 
 export function Board(props : {
     board: Color[][],
-    mockup?: boolean 
+    team: 'a' | 'b'
 }) {
         return (
-            <div className="board">
+            <div className={`board ${props.team}`}>
                 {
                     props.board.map((row,i)=>{
                             return (
@@ -103,7 +103,7 @@ export class CoopGameUI extends React.Component<{},{
                 
                 {
                     this.state.teamSwitchButtonState !== 'off'  ? 
-                    <Board board = {this.state.board} />        :
+                    <Board board = {this.state.board} team = {this.state.board === this.state.teamA ? 'a' : 'b'} />        :
                     <div style={{display: 'flex'}}>
                         <img src={noEyeImg} 
                          alt="no view para los papis"
