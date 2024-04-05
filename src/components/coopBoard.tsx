@@ -8,6 +8,7 @@ import noEyeImg from '../assets/no-eye.svg'
 export function Board(props : {
     board: Color[][],
     team: 'a' | 'b'
+    marked: cardCoordinate[]
 }) {
         return (
             <div className={`board ${props.team}`}>
@@ -20,6 +21,11 @@ export function Board(props : {
                                             return (
                                                 <GameCardButton
                                                     key={`${props.board.flat().toString()},${i},${j}`}
+                                                    coordinate = { {
+                                                        team: props.team,
+                                                        i,
+                                                        j
+                                                    } }
                                                     color= {color}
                                                 />
                                             )
@@ -36,6 +42,7 @@ export function Board(props : {
 
 export class GameCardButton extends React.Component<{
     color: Color,
+    coordinate: cardCoordinate
 }>{
     public state = { marked: false };
 
@@ -46,7 +53,7 @@ export class GameCardButton extends React.Component<{
                 className = "gameCard"
                 onClick={() =>{
                     this.state.marked = !this.state.marked
-                    this.forceUpdate()
+                    this.forceUpdate() // impure
                 }}>
             </button>
         )
@@ -103,7 +110,15 @@ export class CoopGameUI extends React.Component<{},{
                 
                 {
                     this.state.teamSwitchButtonState !== 'off'  ? 
-                    <Board board = {this.state.board} team = {this.state.board === this.state.teamA ? 'a' : 'b'} />        :
+                    ( 
+                    <Board board = {this.state.board}
+                    team = {this.state.board === this.state.teamA ? 'a' : 'b'}
+                    marked={[{
+                        team: 'a',
+                        i: 0,
+                        j: 0
+                    }]} /> 
+                    )        :
                     <div style={{display: 'flex'}}>
                         <img src={noEyeImg} 
                          alt="no view para los papis"
@@ -119,4 +134,10 @@ export class CoopGameUI extends React.Component<{},{
             </div>
         )   
     }
+}
+
+interface cardCoordinate {
+    team : string,
+    i: number,
+    j: number
 }
