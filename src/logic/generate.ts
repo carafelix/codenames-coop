@@ -37,10 +37,10 @@ export function generateCoopBoards (seed : string) : [Color[][],Color[][]]{
         sharedGreens.splice(i,1)
     }
 
-    const flatTeamB = getRandomFlatBoard(rng,12,6,2)
+
+    const flatTeamB = getRandomFlatBoard(rng,12,5,2)
     const fixedTiles = sharedGreens.concat([fixAssassin,fixGray,fixGreen]).sort((a,b)=> a.originalIndex > b.originalIndex ? 1 : -1)
     fixedTiles.forEach((v)=>flatTeamB.splice(v.originalIndex,0,v.color))
-    
     const teamB_board = _.chunk(
         flatTeamB,
         5
