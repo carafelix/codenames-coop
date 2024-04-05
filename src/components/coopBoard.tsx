@@ -1,36 +1,43 @@
-import React, { useState } from "react"
+import React from "react"
 import Color from "../utils/colors"
 import { ElementOptionSwitch } from "./tristateSwitch/ElementOptionSwitch";
 import type { switchTriStates } from "./tristateSwitch/ElementOptionSwitch";
 import { getRandomSeed, generateCoopBoards } from "../logic/generate";
 import noEyeImg from '../assets/no-eye.svg'
 
-export function Board(props : {
-    board: Color[][],
-    team: 'a' | 'b'
-}) {
-    const [state, setState] = useState({
-        marked: []
-    })
+export class Board extends React.Component<boardProps,{
+    marked : any
+}>{
+    constructor(
+        props : boardProps
+    ){
+        super(props)
+        this.state = {
+            marked: {}
+        }
+    }
 
+    render(){
         return (
-            <div className={`board ${props.team}`}>
+            <div className={`board ${this.props.team}`}>
                 {
-                    props.board.map((row,i)=>{
+                    this.props.board.map((row,i)=>{
                             return (
-                                <div key={`${props.board.flat().toString()},${i}`} className="boardRow">
+                                <div key={`${this.props.board.flat().toString()},${i}`} className="boardRow">
                                     {
                                         row.map((color,j)=>{
+                                            const strID = `${this.props.board.flat().toString()},${i},${j}`
+                                            let isMarked = false
+                                            if(this.props.marked?.[strID]){
+                                                isMarked = true
+                                            }
                                             return (
                                                 <GameCardButton
-                                                    key={`${props.board.flat().toString()},${i},${j}`}
-                                                    coordinate = { {
-                                                        team: props.team,
-                                                        i,
-                                                        j
-                                                    } }
+                                                    key={strID}
+                                                    id = {strID}
                                                     color = {color}
-                                                    handleMarked = {setState}
+                                                    marked = {isMarked}
+                                                    handleMarked = {this.props.curry}
                                                 />
                                             )
                                         })
@@ -42,11 +49,15 @@ export function Board(props : {
                 }
             </div>
         )
+    }
 }
+
+        
 
 export class GameCardButton extends React.Component<{
     color: Color,
-    coordinate: cardCoordinate,
+    marked: boolean
+    id : string
     handleMarked: Function
 }>{
     public state = { marked: false , style: {
@@ -55,22 +66,15 @@ export class GameCardButton extends React.Component<{
     }};
 
     render(){
+        const style = {
+            backgroundColor: this.props.color,
+            opacity: this.props.marked ? '20%' : '100%'
+        }
         return (
             <button 
-                style = {this.state.style}
+                style = {style}
                 className = "gameCard"
-                onClick={() =>{
-                    this.setState(()=>{
-                        const mark = !this.state.marked
-                        return {
-                            marked: mark,
-                            style: {
-                                backgroundColor: this.state.style.backgroundColor,
-                                opacity: mark ? '20%' : '100%'
-                            }
-                        }
-                    })
-                }}>
+                onClick={() =>{this.props.handleMarked(this.props.id)}}>
             </button>
         )
     }
@@ -83,7 +87,8 @@ export class CoopGameUI extends React.Component<{},{
     teamSwitchButtonState : switchTriStates,
     board : Color[][],
     teamA: Color[][],
-    teamB: Color [][]
+    teamB: Color [][],
+    marked: any
 }>{
     constructor(props : teamProps ){
         super(props)
@@ -92,30 +97,55 @@ export class CoopGameUI extends React.Component<{},{
             teamSwitchButtonState: 'off',
             board: boards[0],
             teamA: boards[0],
-            teamB: boards[1]
+            teamB: boards[1],
+            marked: {}
         }
     }
 
     regenerateTeamState = () => {
-        this.setState((state)=>{
+        this.setState((prevState)=>{
             const boards = generateCoopBoards(getRandomSeed())
             return {
-                teamSwitchButtonState: state.teamSwitchButtonState,
-                board: state.teamSwitchButtonState === 'team-a' ? boards[0] : boards[1],
+                teamSwitchButtonState: prevState.teamSwitchButtonState,
+                board: prevState.teamSwitchButtonState === 'team-a' ? boards[0] : boards[1],
                 teamA: boards[0],
-                teamB: boards[1]
+                teamB: boards[1],
+                marked: {}
             }
         })
     }
 
     handleToggleChange = (childState : switchTriStates) => {
-        this.setState(() => {
+        this.setState((prev) => {
             return {
                 teamSwitchButtonState: childState,
-                board: childState === 'team-a' ? this.state.teamA : this.state.teamB
+                board: childState === 'team-a' ? this.state.teamA : this.state.teamB,
+                teamA: prev.teamA,
+                teamB: prev.teamB,
+                marked: prev.marked
             }
         })
-      };
+    };
+
+    handleMarkedChanges = (id : string) => {
+        const incoming = {
+            [id]: id
+        }
+        const mergedMarked = {...this.state.marked, ...incoming}
+        this.setState((prev)=>{
+            if(prev.marked?.[id] && mergedMarked?.[id]){
+                mergedMarked[id] = false
+            }
+            
+            return {
+                teamSwitchButtonState: prev.teamSwitchButtonState,
+                board: prev.board,
+                teamA: prev.teamA,
+                teamB: prev.teamB,
+                marked: mergedMarked
+            }
+        })
+    }
 
     render(){
         return (
@@ -129,11 +159,9 @@ export class CoopGameUI extends React.Component<{},{
                     ( 
                     <Board board = {this.state.board}
                     team = {this.state.board === this.state.teamA ? 'a' : 'b'}
-                    // marked={[{
-                    //     team: 'a',
-                    //     i: 0,
-                    //     j: 0
-                    // }]} 
+                    key={this.state.board.flat().toString()} // must be a string flat boardA,boardB : boardB,boardA
+                    marked = {this.state.marked}
+                    curry = {this.handleMarkedChanges}
                     /> 
                     )        :
                     <div style={{display: 'flex'}}>
@@ -154,7 +182,14 @@ export class CoopGameUI extends React.Component<{},{
 }
 
 interface cardCoordinate {
-    team : string,
+    team : 'a' | 'b',
     i: number,
     j: number
+}
+
+interface boardProps {
+    board: Color[][],
+    team: 'a' | 'b',
+    marked: any,
+    curry: Function
 }
