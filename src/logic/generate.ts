@@ -1,4 +1,4 @@
-import _lodash from 'lodash';
+import _lodash, { flatten } from 'lodash';
 import Color from '../utils/colors.ts';
 import seedrandom from 'seedrandom';
 
@@ -20,7 +20,7 @@ export function generateCoopBoards (seed : string) : [Color[][],Color[][]]{
         _.shuffle(getFlatBoard()),
         5
     )
-    const firstBoard = teamA_board.flat(2).map((v,i)=>{ return {color: v, originalIndex: i} })
+    const firstBoard = teamA_board.flat(2).map((v,i)=>{ return {color: v, i: i} })
     const firstAssassins = firstBoard.filter((v)=>v.color == Color.BLACK)
 
     const fixAssassin = firstAssassins.splice(Math.floor(Math.random()*firstAssassins.length),1)[0]
@@ -38,10 +38,24 @@ export function generateCoopBoards (seed : string) : [Color[][],Color[][]]{
         sharedGreens.splice(i,1)
     }
 
+    const fixedTiles = sharedGreens.concat(...[fixAssassin,fixGray,fixGreen]).sort((a,b)=> a.i > b.i ? 1 : -1)
 
-    const flatTeamB = _.shuffle(getFlatBoard(12,5,2))
-    const fixedTiles = sharedGreens.concat(...[fixAssassin,fixGray,fixGreen]).sort((a,b)=> a.originalIndex > b.originalIndex ? 1 : -1)
-    fixedTiles.forEach((v)=>flatTeamB.splice(v.originalIndex,0,v.color))
+    // slow
+    
+    let flatTeamB : Color[];
+    let stringed;
+    do{
+        flatTeamB = _.shuffle(getFlatBoard(12,5,2))
+        fixedTiles.forEach((v)=>flatTeamB.splice(v.i,0,v.color))
+        stringed = flatTeamB.map((v,i)=>{
+            return {
+                color: v,
+                i
+            }
+        }).filter((v)=>v.color !== Color.GREEN).map((v)=>`${v.color},${v.i}`)
+    }
+    while(_.intersection(stringed,teamA_board.flat().map((v,i)=>`${v},${i}`)).length !== 8)
+    
     const teamB_board = _.chunk(
         flatTeamB,
         5
@@ -56,4 +70,9 @@ export function getFlatBoard(grays = 13, greens = 9, blacks = 3 ){
           ...(Array.from({ length: greens }).fill(Color.GREEN) as Color[]),
           ...(Array.from({ length: blacks }).fill(Color.BLACK) as Color[]),
         ]
+}
+
+function swapTwoElements(array : Color[],index1:number,index2:number){
+    [array[index1], array[index2]] = [array[index2], array[index1]];
+    return array
 }
