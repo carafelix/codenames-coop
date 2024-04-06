@@ -1,4 +1,4 @@
-import _lodash, { flatten } from 'lodash';
+import _lodash from 'lodash';
 import Color from '../utils/colors.ts';
 import seedrandom from 'seedrandom';
 
@@ -41,7 +41,7 @@ export function generateCoopBoards (seed : string) : [Color[][],Color[][]]{
     const fixedTiles = sharedGreens.concat(...[fixAssassin,fixGray,fixGreen]).sort((a,b)=> a.i > b.i ? 1 : -1)
 
     // slow
-    
+
     let flatTeamB : Color[];
     let stringed;
     do{
@@ -70,9 +70,4 @@ export function getFlatBoard(grays = 13, greens = 9, blacks = 3 ){
           ...(Array.from({ length: greens }).fill(Color.GREEN) as Color[]),
           ...(Array.from({ length: blacks }).fill(Color.BLACK) as Color[]),
         ]
-}
-
-function swapTwoElements(array : Color[],index1:number,index2:number){
-    [array[index1], array[index2]] = [array[index2], array[index1]];
-    return array
 }
