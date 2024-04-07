@@ -4,6 +4,7 @@ import { ElementOptionSwitch } from "./tristateSwitch/ElementOptionSwitch";
 import type { switchTriStates } from "./tristateSwitch/ElementOptionSwitch";
 import { getRandomSeed, generateCoopBoards } from "../logic/generate";
 import noEyeImg from '../assets/no-eye.svg'
+import { createWorker } from 'tesseract.js';
 
 export class Board extends React.Component<boardProps,{
     marked : any
@@ -153,6 +154,14 @@ export class CoopGameUI extends React.Component<{},{
                 <div style={{display: "flex", justifyContent: 'center', padding: '1em'}}>
                     <ElementOptionSwitch onSignalChange={this.handleToggleChange}/>
                 </div>
+
+                <button onClick={(async () => {
+                    const worker = await createWorker('eng');
+                    const ret = await worker.recognize('https://tesseract.projectnaptha.com/img/eng_bw.png');
+                    console.log(ret.data.text);
+                    await worker.terminate();
+                    })}>j
+                </button>
                 
                 {
                     this.state.teamSwitchButtonState !== 'off'  ? 
