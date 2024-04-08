@@ -144,7 +144,6 @@ export class CoopGameUI extends React.Component<{},{
 }
 
 async function splitAndSendToOCR(file : File) {
-    // Create an array to store the OCR results
     const ocrResults : string[] = [];
     const reader = new FileReader();
     
@@ -157,19 +156,17 @@ async function splitAndSendToOCR(file : File) {
             // Calculate grid square dimensions
             const squareWidth = img.width / 5;
             const squareHeight = img.height / 5;
+            
+            canvas.width = squareWidth;
+            canvas.height = squareHeight;
 
             const worker = await createWorker()
 
             // Loop through each grid square
             for (let row = 0; row < 5; row++) {
                 for (let col = 0; col < 5; col++) {
-                    // Set canvas size to the grid square dimensions
-                    canvas.width = squareWidth;
-                    canvas.height = squareHeight;
-
                     // Draw the grid square onto the canvas
                     ctx.drawImage(img, col * squareWidth, row * squareHeight, squareWidth, squareHeight, 0, 0, squareWidth, squareHeight);
-
                     // Get image data of the grid square
                     const imageData = canvas.toDataURL('image/jpeg');
                     // Perform OCR on the grid square using Tesseract.js 
