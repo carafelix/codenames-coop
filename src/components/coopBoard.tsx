@@ -154,11 +154,9 @@ async function splitAndSendToOCR(file : File) {
             const ctx = canvas.getContext('2d');
             if(!ctx) return;
             // Calculate grid square dimensions
-            const squareWidth = img.width / 5;
-            const squareHeight = img.height / 5;
             
-            canvas.width = squareWidth;
-            canvas.height = squareHeight;
+            canvas.width = img.width / 5;
+            canvas.height = img.height / 5;
 
             const worker = await createWorker()
 
@@ -166,7 +164,7 @@ async function splitAndSendToOCR(file : File) {
             for (let row = 0; row < 5; row++) {
                 for (let col = 0; col < 5; col++) {
                     // Draw the grid square onto the canvas
-                    ctx.drawImage(img, col * squareWidth, row * squareHeight, squareWidth, squareHeight, 0, 0, squareWidth, squareHeight);
+                    ctx.drawImage(img, col * canvas.width, row * canvas.height, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
                     // Get image data of the grid square
                     const imageData = canvas.toDataURL('image/jpeg');
                     // Perform OCR on the grid square using Tesseract.js 
