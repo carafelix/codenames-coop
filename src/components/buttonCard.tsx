@@ -18,6 +18,7 @@ export class GameCardButton extends React.Component<{
                     textAlign: 'center'
                 }}
                 className = "gameCard"
+                id = {this.props.id}
                 onClick={() => {this.props.handleMarked(this.props.id)}}>
                 {this.props.word || <>&nbsp;</>}
             </button>

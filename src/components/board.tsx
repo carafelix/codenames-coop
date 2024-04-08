@@ -17,9 +17,15 @@ export class Board extends React.Component<
 
   render() {
     return (
-      <div className={`board ${this.props.team}`}>
+      <div className={`board ${this.props.team}`}
+      style={{
+        display: 'grid',
+        gap: '1em',
+        gridTemplateColumns: 'repeat(5,100px)',
+        gridTemplateRows: 'repeat(5,100px)'
+      }}>
         {this.props.board.map((element, i) => {
-          const strID = `${this.props.board.flat().toString()},${i}`;
+          const strID = `${i},${this.props.board.map(v=>v.color).toString()}`;
           let isMarked = false;
           if (this.props.marked?.[strID]) {
             isMarked = true;

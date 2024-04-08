@@ -128,7 +128,7 @@ export class CoopGameUI extends React.Component<{},{
                     )        :
                     <div style={{display: 'flex'}}>
                         <img src={noEyeImg} 
-                         alt="no view para los papis"
+                         alt="blind eye"
                          className="eye"/> 
                     </div>
                 }
@@ -153,14 +153,12 @@ async function splitAndSendToOCR(file : File) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             if(!ctx) return;
-            // Calculate grid square dimensions
-            
+
             canvas.width = img.width / 5;
             canvas.height = img.height / 5;
 
             const worker = await createWorker()
 
-            // Loop through each grid square
             for (let row = 0; row < 5; row++) {
                 for (let col = 0; col < 5; col++) {
                     // Draw the grid square onto the canvas
@@ -170,7 +168,6 @@ async function splitAndSendToOCR(file : File) {
                     // Perform OCR on the grid square using Tesseract.js 
                     const { data: { text } } = await worker.recognize(imageData);
                     const word = text
-                    // Store the OCR result
                     ocrResults.push(word.replace(/[^a-zA-Z]/g, '').toLowerCase());
                 }
             }
