@@ -1,10 +1,13 @@
 import React from "react"
 import Color from "../utils/colors"
+import { chunk } from 'lodash' 
 import { ElementOptionSwitch } from "./tristateSwitch/ElementOptionSwitch";
 import type { switchTriStates } from "./tristateSwitch/ElementOptionSwitch";
-import { getRandomSeed, generateCoopBoards } from "../logic/generate";
-import noEyeImg from '../assets/no-eye.svg'
+import { getRandomSeed, generateFlatCoopBoards } from "../logic/generate";
 import { createWorker } from 'tesseract.js';
+import noEyeImg from '../assets/no-eye.svg'
+import cameraImg from '../assets/camera.svg'
+
 
 export class Board extends React.Component<boardProps,{
     marked : any
@@ -26,7 +29,7 @@ export class Board extends React.Component<boardProps,{
                             return (
                                 <div key={`${this.props.board.flat().toString()},${i}`} className="boardRow">
                                     {
-                                        row.map((color,j)=>{
+                                        row.map((element,j)=>{
                                             const strID = `${this.props.board.flat().toString()},${i},${j}`
                                             let isMarked = false
                                             if(this.props.marked?.[strID]){
@@ -36,9 +39,10 @@ export class Board extends React.Component<boardProps,{
                                                 <GameCardButton
                                                     key={strID}
                                                     id = {strID}
-                                                    color = {color}
+                                                    color = {element.color}
                                                     marked = {isMarked}
                                                     handleMarked = {this.props.curry}
+                                                    word = {element.word}
                                                 />
                                             )
                                         })
@@ -53,29 +57,25 @@ export class Board extends React.Component<boardProps,{
     }
 }
 
-        
-
 export class GameCardButton extends React.Component<{
     color: Color,
     marked: boolean
     id : string
     handleMarked: Function
+    word : string | null
 }>{
-    public state = { marked: false , style: {
-        backgroundColor: this.props.color,
-        opacity: '100%'
-    }};
-
     render(){
-        const style = {
-            backgroundColor: this.props.color,
-            opacity: this.props.marked ? '20%' : '100%'
-        }
         return (
             <button 
-                style = {style}
+                style = {{
+                    backgroundColor: this.props.color,
+                    opacity: this.props.marked ? '20%' : '100%',
+                    color: this.props.color === "#000" ? '#ffffffee' : '#242424',
+                    textAlign: 'center'
+                }}
                 className = "gameCard"
-                onClick={() =>{this.props.handleMarked(this.props.id)}}>
+                onClick={() => {this.props.handleMarked(this.props.id)}}>
+                {this.props.word || ' '}
             </button>
         )
     }
@@ -86,31 +86,45 @@ interface teamProps {
 }
 export class CoopGameUI extends React.Component<{},{
     teamSwitchButtonState : switchTriStates,
-    board : Color[][],
-    teamA: Color[][],
-    teamB: Color [][],
+    board : cardData[][],
+    teamA: cardData[][],
+    teamB: cardData[][],
+    words: string[],
     marked: any
 }>{
     constructor(props : teamProps ){
         super(props)
-        const boards = generateCoopBoards(getRandomSeed())
+        const boards = generateFlatCoopBoards(getRandomSeed()).map(b=>chunk(b.map(c=>{
+            return {
+                color: c,
+                word: null
+            }
+        }),5))
+
         this.state = {
             teamSwitchButtonState: 'off',
             board: boards[0],
             teamA: boards[0],
             teamB: boards[1],
+            words: [],
             marked: {}
         }
     }
 
     regenerateTeamState = () => {
         this.setState((prevState)=>{
-            const boards = generateCoopBoards(getRandomSeed())
+            const boards = generateFlatCoopBoards(getRandomSeed()).map((b)=>chunk(b.map((c,i)=>{
+                return {
+                    color: c,
+                    word: prevState.words[i]
+                }
+            }),5))
             return {
                 teamSwitchButtonState: prevState.teamSwitchButtonState,
                 board: prevState.teamSwitchButtonState === 'team-a' ? boards[0] : boards[1],
                 teamA: boards[0],
                 teamB: boards[1],
+                words: [],
                 marked: {}
             }
         })
@@ -151,17 +165,33 @@ export class CoopGameUI extends React.Component<{},{
     render(){
         return (
             <div>
-                <div style={{display: "flex", justifyContent: 'center', padding: '1em'}}>
+                <div style={{display: "flex", justifyContent: 'center', padding: '1em', alignItems: 'center', gap: '1em'}}>
                     <ElementOptionSwitch onSignalChange={this.handleToggleChange}/>
-                </div>
 
-                <button onClick={(async () => {
-                    const worker = await createWorker('eng');
-                    const ret = await worker.recognize('https://tesseract.projectnaptha.com/img/eng_bw.png');
-                    console.log(ret.data.text);
-                    await worker.terminate();
-                    })}>j
-                </button>
+                    <label id="cameraLabel" htmlFor="img_uploader" style={{ display: "flex", alignItems: 'center'}}>
+                        <img src={cameraImg} alt="camera"/>
+                    </label>
+                    <canvas></canvas>
+                    <input type="file" 
+                        id="img_uploader"
+                        accept="image/*"
+                        style={{display: "none"}}
+                        onChange={(
+                            async () => {
+                            const worker = await createWorker('spa');
+                            const input = document.querySelector('#img_uploader') as HTMLInputElement
+                            if(input.files?.[0]){
+                                const words = await splitAndSendToOCR(input.files[0])
+                                this.setState(()=>{
+                                    return {
+                                        words
+                                    }
+                                })
+                            }
+                        })}
+                        >
+                    </input>
+                </div>
                 
                 {
                     this.state.teamSwitchButtonState !== 'off'  ? 
@@ -191,8 +221,61 @@ export class CoopGameUI extends React.Component<{},{
 }
 
 interface boardProps {
-    board: Color[][],
+    board: cardData[][],
     team: 'a' | 'b',
     marked: any,
     curry: Function
+}
+
+interface cardData{
+    color: Color,
+    word: string | null
+}
+
+async function splitAndSendToOCR(file : File) {
+    const ocrResults : string[] = [];
+
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+        const img = new Image();
+        img.onload = async function () {
+            // const canvas = document.createElement('canvas');
+            const canvas = document.querySelector('canvas')
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if(!ctx) return;
+            // Calculate grid square dimensions
+            const squareWidth = img.width / 5;
+            const squareHeight = img.height / 5;
+
+            // Create an array to store the OCR results
+
+            // Loop through each grid square
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    // Set canvas size to the grid square dimensions
+                    canvas.width = squareWidth;
+                    canvas.height = squareHeight;
+
+                    // Draw the grid square onto the canvas
+                    ctx.drawImage(img, col * squareWidth, row * squareHeight, squareWidth, squareHeight, 0, 0, squareWidth, squareHeight);
+
+                    // Get image data of the grid square
+                    const imageData = canvas.toDataURL('image/jpeg');
+                    const worker = await createWorker()
+                    // Perform OCR on the grid square using Tesseract.js    
+                    const { data: { text } } = await worker.recognize(imageData);
+                    const word = text
+                    // Store the OCR result
+                    ocrResults.push(word.replace(/[^a-zA-Z]/g, '').toLowerCase());
+                }
+            }
+            // Output OCR results
+            // console.log(ocrResults);
+        };
+        img.src = e.target!.result as string;
+    };
+    reader.readAsDataURL(file);
+    return ocrResults
+
 }

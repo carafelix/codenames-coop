@@ -9,18 +9,16 @@ export function getRandomSeed(){
     return Math.random().toString(36).slice(7)
 }
 
-export function generateCoopBoards (seed : string) : [Color[][],Color[][]]{
+export function generateFlatCoopBoards (seed : string) : [Color[],Color[]]{
 
     const orig = Math.random
     seedrandom(seed, {global: true})
 
     const _ = _lodash.runInContext()
 
-    const teamA_board = _.chunk(
-        _.shuffle(getFlatBoard()),
-        5
-    )
-    const firstBoard = teamA_board.flat(2).map((v,i)=>{ return {color: v, i: i} })
+    const teamA_board = _.shuffle(getFlatBoard())
+
+    const firstBoard = teamA_board.map((v,i)=>{ return {color: v, i: i} })
     const firstAssassins = firstBoard.filter((v)=>v.color == Color.BLACK)
 
     const fixAssassin = firstAssassins.splice(Math.floor(Math.random()*firstAssassins.length),1)[0]
@@ -56,10 +54,7 @@ export function generateCoopBoards (seed : string) : [Color[][],Color[][]]{
     }
     while(_.intersection(stringed,teamA_board.flat().map((v,i)=>`${v},${i}`)).length !== 8)
     
-    const teamB_board = _.chunk(
-        flatTeamB,
-        5
-    )
+    const teamB_board = flatTeamB
     Math.random = orig
     return [teamA_board,teamB_board]
 }
@@ -70,4 +65,9 @@ export function getFlatBoard(grays = 13, greens = 9, blacks = 3 ){
           ...(Array.from({ length: greens }).fill(Color.GREEN) as Color[]),
           ...(Array.from({ length: blacks }).fill(Color.BLACK) as Color[]),
         ]
+}
+
+function swapTwo(array : Color[],index1:number,index2:number){
+    [array[index1], array[index2]] = [array[index2], array[index1]];
+    return array
 }
