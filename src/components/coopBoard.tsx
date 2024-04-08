@@ -24,11 +24,9 @@ export class CoopGameUI extends React.Component<
 
     if (!searchParams.get('seed')) {
       searchParams.set('seed', getRandomSeed());
+      window.history.pushState({}, '', '?' + searchParams.toString());
     }
-    window.history.pushState({}, '', '?' + searchParams.toString());
-
     let wordsArray = (JSON.parse(searchParams.get('words') || `[]`))
-    
     if(wordsArray.length !== 25 ||
        Object.getPrototypeOf(wordsArray) !== Object.getPrototypeOf([]) ||
        wordsArray.every((i:any)=>typeof i !== 'string')
@@ -56,18 +54,11 @@ export class CoopGameUI extends React.Component<
     };
   }
 
-  handleWordsChange = () =>{
-    this.setState(()=>{
-        
-    })
-  }
-
   regenerateTeamState = () => {
     this.setState((prevState) => {
       searchParams.set('seed', getRandomSeed());
       window.history.pushState({}, '', '?' + searchParams.toString());
-      const words = JSON.parse(searchParams.get('words') || `${new Array(25).fill('')}`)
-
+      const words = JSON.parse(searchParams.get('words') || JSON.stringify(new Array(25).fill('')))
       const boards = generateFlatCoopBoards(
         searchParams.get('seed') || getRandomSeed()
       ).map((b) =>
@@ -78,9 +69,7 @@ export class CoopGameUI extends React.Component<
           };
         })
       );
-
       return {
-        teamSwitchButtonState: prevState.teamSwitchButtonState,
         board:
           prevState.teamSwitchButtonState === 'team-a' ? boards[0] : boards[1],
         teamA: boards[0],
@@ -89,6 +78,12 @@ export class CoopGameUI extends React.Component<
       };
     });
   };
+
+  handleHistoryNavigation = (direction : string) =>{
+    if(direction === 'prev'){
+        window.history.back()
+    } else window.history.forward();
+  }
 
   handleToggleChange = (childState: switchTriStates) => {
     this.setState((prev) => {
@@ -163,7 +158,6 @@ export class CoopGameUI extends React.Component<
           }
         }
         await worker.terminate();
-
         searchParams.set('words', JSON.stringify(reader.storage))
         this.setState((prev)=>{
             const teamA_mergedWords = prev.teamA.map((v,i)=>{
@@ -179,7 +173,6 @@ export class CoopGameUI extends React.Component<
                 }
             })
           return {
-
             board: prev.teamSwitchButtonState === 'team-a' ? teamA_mergedWords : teamB_mergedWords,
             teamA: teamA_mergedWords,
             teamB: teamB_mergedWords,
@@ -254,9 +247,9 @@ export class CoopGameUI extends React.Component<
             gap: '0.5em',
           }}
         >
-          <button onClick={() => window.history.back()}>previous</button>
+          <button onClick={()=>this.handleHistoryNavigation('prev')}>previous</button>
           <button onClick={this.regenerateTeamState}>regenerate</button>
-          <button onClick={() => window.history.forward()}>next</button>
+          <button onClick={()=>this.handleHistoryNavigation('next')}>next</button>
         </div>
       </div>
     );
