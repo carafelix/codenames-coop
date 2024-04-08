@@ -122,6 +122,8 @@ export class CoopGameUI extends React.Component<
     });
   };
 
+  // TOO MUCH COUPLING 
+
     splitAndSendToOCR = (file: File) => {
     const reader = new cameraReader();
     reader.onload = async (e) => {
@@ -164,25 +166,23 @@ export class CoopGameUI extends React.Component<
 
         searchParams.set('words', JSON.stringify(reader.storage))
         this.setState((prev)=>{
+            const teamA_mergedWords = prev.teamA.map((v,i)=>{
+                return {
+                    color: v.color,
+                    word: reader.storage[i]
+                }
+            })
+            const teamB_mergedWords = prev.teamB.map((v,i)=>{
+                return {
+                    color: v.color,
+                    word: reader.storage[i]
+                }
+            })
           return {
-            board: prev.board.map((v,i)=>{
-                return {
-                    color: v.color,
-                    word: reader.storage[i]
-                }
-            }),
-            teamA: prev.teamA.map((v,i)=>{
-                return {
-                    color: v.color,
-                    word: reader.storage[i]
-                }
-            }),
-            teamB: prev.teamB.map((v,i)=>{
-                return {
-                    color: v.color,
-                    word: reader.storage[i]
-                }
-            }),
+
+            board: prev.teamSwitchButtonState === 'team-a' ? teamA_mergedWords : teamB_mergedWords,
+            teamA: teamA_mergedWords,
+            teamB: teamB_mergedWords,
             rotated: prev.rotated,
             marked: prev.marked,
           }
