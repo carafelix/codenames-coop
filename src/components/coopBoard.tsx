@@ -75,7 +75,7 @@ export class GameCardButton extends React.Component<{
                 }}
                 className = "gameCard"
                 onClick={() => {this.props.handleMarked(this.props.id)}}>
-                {this.props.word || ' '}
+                {this.props.word || <>&nbsp;</>}
             </button>
         )
     }
@@ -124,7 +124,7 @@ export class CoopGameUI extends React.Component<{},{
                 board: prevState.teamSwitchButtonState === 'team-a' ? boards[0] : boards[1],
                 teamA: boards[0],
                 teamB: boards[1],
-                words: [],
+                words: prevState.words,
                 marked: {}
             }
         })
@@ -171,7 +171,6 @@ export class CoopGameUI extends React.Component<{},{
                     <label id="cameraLabel" htmlFor="img_uploader" style={{ display: "flex", alignItems: 'center'}}>
                         <img src={cameraImg} alt="camera"/>
                     </label>
-                    <canvas></canvas>
                     <input type="file" 
                         id="img_uploader"
                         accept="image/*"
@@ -239,9 +238,8 @@ async function splitAndSendToOCR(file : File) {
     reader.onload = async function (e) {
         const img = new Image();
         img.onload = async function () {
-            // const canvas = document.createElement('canvas');
-            const canvas = document.querySelector('canvas')
-            if(!canvas) return;
+            const canvas = document.createElement('canvas');
+            // const canvas = document.querySelector('canvas')
             const ctx = canvas.getContext('2d');
             if(!ctx) return;
             // Calculate grid square dimensions
