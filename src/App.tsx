@@ -1,11 +1,11 @@
-import { CoopGameUI } from './components/coopBoard'
+import { CoopGameUI } from './components/coopBoard';
 
-function  App() {
+function App() {
   return (
     <>
-      <CoopGameUI/>
+      <CoopGameUI />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
