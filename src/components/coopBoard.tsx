@@ -101,7 +101,7 @@ export class CoopGameUI extends React.Component<{},{
                         style={{display: "none"}}
                         onChange={(
                             async () => {
-                            const worker = await createWorker('spa');
+                            // const worker = await createWorker('spa');
                             const input = document.querySelector('#img_uploader') as HTMLInputElement
                             if(input.files?.[0]){
                                 const words = await splitAndSendToOCR(input.files[0])
@@ -144,21 +144,21 @@ export class CoopGameUI extends React.Component<{},{
 }
 
 async function splitAndSendToOCR(file : File) {
+    // Create an array to store the OCR results
     const ocrResults : string[] = [];
-
     const reader = new FileReader();
+    
     reader.onload = async function (e) {
         const img = new Image();
         img.onload = async function () {
             const canvas = document.createElement('canvas');
-            // const canvas = document.querySelector('canvas')
             const ctx = canvas.getContext('2d');
             if(!ctx) return;
             // Calculate grid square dimensions
             const squareWidth = img.width / 5;
             const squareHeight = img.height / 5;
 
-            // Create an array to store the OCR results
+            const worker = await createWorker()
 
             // Loop through each grid square
             for (let row = 0; row < 5; row++) {
@@ -172,20 +172,17 @@ async function splitAndSendToOCR(file : File) {
 
                     // Get image data of the grid square
                     const imageData = canvas.toDataURL('image/jpeg');
-                    const worker = await createWorker()
-                    // Perform OCR on the grid square using Tesseract.js    
+                    // Perform OCR on the grid square using Tesseract.js 
                     const { data: { text } } = await worker.recognize(imageData);
                     const word = text
                     // Store the OCR result
                     ocrResults.push(word.replace(/[^a-zA-Z]/g, '').toLowerCase());
                 }
             }
-            // Output OCR results
-            // console.log(ocrResults);
+            await worker.terminate()
         };
         img.src = e.target!.result as string;
     };
     reader.readAsDataURL(file);
     return ocrResults
-
 }
