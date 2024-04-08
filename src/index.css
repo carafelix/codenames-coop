@@ -4,7 +4,7 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
+  color: rgba(255, 255, 255, 0.871);
   background-color: #242424;
 
   font-synthesis: none;
@@ -36,7 +36,7 @@ h1 {
   line-height: 1.1;
 }
 
-button {
+button, #cameraLabel {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -48,13 +48,20 @@ button {
   transition: border-color 0.25s;
 }
 button.gameCard {
-  padding: 1.6em;
+  padding: 0;
+  width: 100px;
+  height: 100px;
   margin: 0.5em;
   outline: 1px solid white;
+  text-align: center;
 }
 
-button:hover {
+button:hover, #cameraLabel:hover {
   border-color: #646cff;
+}
+
+#cameraLabel{
+  padding: 0.3em 0.6em;
 }
 
 
@@ -64,6 +71,9 @@ button:hover {
   width: 346px;
   height: 346x; 
   /* do not set it fix size... make a proper grid lazy man */
+}
+#cameraLabel > img{
+  filter: invert(90%);
 }
 
 @-moz-document url-prefix() {
@@ -81,10 +91,10 @@ button:hover {
   a:hover {
     color: #747bff;
   }
-  button {
-    background-color: #f9f9f9;
+  button, #cameraLabel {
+    background-color: rgb(230, 230, 230);
   }
-  .eye{
+  .eye, #cameraLabel > img{
     filter: none;
   }
 }

@@ -19,8 +19,9 @@
 }
 
 .element-option-switch.off {
-  background-color: #ffffff;
+  background-color: rgb(230, 230, 230);
 }
+
 
 .element-option-switch.team-a {
   background-color: #1dc9a0;
@@ -31,6 +32,7 @@
 }
 
 .element-option-switch.off .thumb {
+  filter: invert(80%);
   left: 25px;
 }
 
@@ -40,7 +42,7 @@
 
 
 @media (prefers-color-scheme: dark) {
-  .element-option-switch.off .thumb{
-    filter: brightness(40%);
+  .element-option-switch.off {
+    background-color: rgb(255, 255, 255);
   }
 }
