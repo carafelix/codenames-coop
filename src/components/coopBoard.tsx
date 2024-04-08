@@ -1,105 +1,28 @@
 import React from "react"
-import Color from "../utils/colors"
-import { chunk } from 'lodash' 
 import { ElementOptionSwitch } from "./tristateSwitch/ElementOptionSwitch";
-import type { switchTriStates } from "./tristateSwitch/ElementOptionSwitch";
 import { getRandomSeed, generateFlatCoopBoards } from "../logic/generate";
 import { createWorker } from 'tesseract.js';
+import { Board } from "./board";
 import noEyeImg from '../assets/no-eye.svg'
 import cameraImg from '../assets/camera.svg'
+import { cardData, teamProps, switchTriStates } from "../app";
 
-
-export class Board extends React.Component<boardProps,{
-    marked : any
-}>{
-    constructor(
-        props : boardProps
-    ){
-        super(props)
-        this.state = {
-            marked: {}
-        }
-    }
-
-    render(){
-        return (
-            <div className={`board ${this.props.team}`}>
-                {
-                    this.props.board.map((row,i)=>{
-                            return (
-                                <div key={`${this.props.board.flat().toString()},${i}`} className="boardRow">
-                                    {
-                                        row.map((element,j)=>{
-                                            const strID = `${this.props.board.flat().toString()},${i},${j}`
-                                            let isMarked = false
-                                            if(this.props.marked?.[strID]){
-                                                isMarked = true
-                                            }
-                                            return (
-                                                <GameCardButton
-                                                    key={strID}
-                                                    id = {strID}
-                                                    color = {element.color}
-                                                    marked = {isMarked}
-                                                    handleMarked = {this.props.curry}
-                                                    word = {element.word}
-                                                />
-                                            )
-                                        })
-                                    }
-                                </div>
-                            )
-                        }
-                    )
-                }
-            </div>
-        )
-    }
-}
-
-export class GameCardButton extends React.Component<{
-    color: Color,
-    marked: boolean
-    id : string
-    handleMarked: Function
-    word : string | null
-}>{
-    render(){
-        return (
-            <button 
-                style = {{
-                    backgroundColor: this.props.color,
-                    opacity: this.props.marked ? '20%' : '100%',
-                    color: this.props.color === "#000" ? '#ffffffee' : '#242424',
-                    textAlign: 'center'
-                }}
-                className = "gameCard"
-                onClick={() => {this.props.handleMarked(this.props.id)}}>
-                {this.props.word || <>&nbsp;</>}
-            </button>
-        )
-    }
-}
-interface teamProps {
-    teamA: Color[][],
-    teamB: Color[][]
-}
 export class CoopGameUI extends React.Component<{},{
     teamSwitchButtonState : switchTriStates,
-    board : cardData[][],
-    teamA: cardData[][],
-    teamB: cardData[][],
+    board : cardData[],
+    teamA: cardData[],
+    teamB: cardData[],
     words: string[],
-    marked: any
+    marked: any //:LLLLLLLLLLL
 }>{
     constructor(props : teamProps ){
         super(props)
-        const boards = generateFlatCoopBoards(getRandomSeed()).map(b=>chunk(b.map(c=>{
+        const boards = generateFlatCoopBoards(getRandomSeed()).map(b=>b.map(c=>{
             return {
                 color: c,
                 word: null
             }
-        }),5))
+        }))
 
         this.state = {
             teamSwitchButtonState: 'off',
@@ -113,12 +36,13 @@ export class CoopGameUI extends React.Component<{},{
 
     regenerateTeamState = () => {
         this.setState((prevState)=>{
-            const boards = generateFlatCoopBoards(getRandomSeed()).map((b)=>chunk(b.map((c,i)=>{
+            const boards = generateFlatCoopBoards(getRandomSeed()).map(b=>b.map((c,i)=>{
                 return {
                     color: c,
                     word: prevState.words[i]
                 }
-            }),5))
+            }))
+            
             return {
                 teamSwitchButtonState: prevState.teamSwitchButtonState,
                 board: prevState.teamSwitchButtonState === 'team-a' ? boards[0] : boards[1],
@@ -217,18 +141,6 @@ export class CoopGameUI extends React.Component<{},{
             </div>
         )   
     }
-}
-
-interface boardProps {
-    board: cardData[][],
-    team: 'a' | 'b',
-    marked: any,
-    curry: Function
-}
-
-interface cardData{
-    color: Color,
-    word: string | null
 }
 
 async function splitAndSendToOCR(file : File) {
