@@ -12,6 +12,9 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+*{
+  box-sizing: border-box;
+}
 
 a {
   font-weight: 500;
@@ -49,8 +52,6 @@ button, #cameraLabel {
 }
 button.gameCard {
   padding: 0;
-  width: 100px;
-  height: 100px;
   margin: 0.5em;
   outline: 1px solid white;
   text-align: center;

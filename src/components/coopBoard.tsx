@@ -13,6 +13,7 @@ export class CoopGameUI extends React.Component<{},{
     teamA: cardData[],
     teamB: cardData[],
     words: string[],
+    rotated: [number, number]
     marked: any //:LLLLLLLLLLL
 }>{
     constructor(props : teamProps ){
@@ -30,6 +31,7 @@ export class CoopGameUI extends React.Component<{},{
             teamA: boards[0],
             teamB: boards[1],
             words: [],
+            rotated: [0,0],
             marked: {}
         }
     }
@@ -172,6 +174,7 @@ async function splitAndSendToOCR(file : File) {
                 }
             }
             await worker.terminate()
+            
         };
         img.src = e.target!.result as string;
     };

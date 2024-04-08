@@ -20,9 +20,9 @@ export class Board extends React.Component<
       <div className={`board ${this.props.team}`}
       style={{
         display: 'grid',
-        gap: '1em',
-        gridTemplateColumns: 'repeat(5,100px)',
-        gridTemplateRows: 'repeat(5,100px)'
+        gap: '0.3em',
+        gridTemplateColumns: 'repeat(5,120px)',
+        gridTemplateRows: 'repeat(5,120px)'
       }}>
         {this.props.board.map((element, i) => {
           const strID = `${i},${this.props.board.map(v=>v.color).toString()}`;
