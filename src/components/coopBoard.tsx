@@ -15,7 +15,6 @@ export class CoopGameUI extends React.Component<
     board: cardData[];
     teamA: cardData[];
     teamB: cardData[];
-    words: string[];
     rotated: [number, number];
     marked: any; //:LLLLLLLLLLL
   }
@@ -28,13 +27,22 @@ export class CoopGameUI extends React.Component<
     }
     window.history.pushState({}, '', '?' + searchParams.toString());
 
+    let wordsArray = (JSON.parse(searchParams.get('words') || `[]`))
+    
+    if(wordsArray.length !== 25 ||
+       Object.getPrototypeOf(wordsArray) !== Object.getPrototypeOf([]) ||
+       wordsArray.every((i:any)=>typeof i !== 'string')
+    ){
+        wordsArray = new Array(25).fill('')
+    }
+    console.log(searchParams.get('seed'))
     const boards = generateFlatCoopBoards(
       searchParams.get('seed') || getRandomSeed()
     ).map((b) =>
-      b.map((c) => {
+      b.map((c,i) => {
         return {
           color: c,
-          word: null,
+          word: wordsArray[i],
         };
       })
     );
@@ -44,7 +52,6 @@ export class CoopGameUI extends React.Component<
       board: boards[0],
       teamA: boards[0],
       teamB: boards[1],
-      words: [],
       rotated: [0, 0],
       marked: {},
     };
@@ -54,13 +61,15 @@ export class CoopGameUI extends React.Component<
     this.setState((prevState) => {
       searchParams.set('seed', getRandomSeed());
       window.history.pushState({}, '', '?' + searchParams.toString());
+      const words = JSON.parse(searchParams.get('words') || `${new Array(25).fill('')}`)
+
       const boards = generateFlatCoopBoards(
         searchParams.get('seed') || getRandomSeed()
       ).map((b) =>
         b.map((c, i) => {
           return {
             color: c,
-            word: prevState.words[i],
+            word: words[i],
           };
         })
       );
@@ -71,7 +80,6 @@ export class CoopGameUI extends React.Component<
           prevState.teamSwitchButtonState === 'team-a' ? boards[0] : boards[1],
         teamA: boards[0],
         teamB: boards[1],
-        words: prevState.words,
         marked: {},
       };
     });
@@ -140,12 +148,8 @@ export class CoopGameUI extends React.Component<
                 '#img_uploader'
               ) as HTMLInputElement;
               if (input.files?.[0]) {
-                const words = await splitAndSendToOCR(input.files[0]);
-                this.setState(() => {
-                  return {
-                    words,
-                  };
-                });
+                const setStateBinded = this.setState.bind(this)                
+                const wordsReader = await splitAndSendToOCR(input.files[0], setStateBinded);
               }
             }}
           ></input>
@@ -182,13 +186,12 @@ export class CoopGameUI extends React.Component<
   }
 }
 
-async function splitAndSendToOCR(file: File) {
-  const ocrResults: string[] = [];
-  const reader = new FileReader();
+async function splitAndSendToOCR(file: File, setStateCallback : Function) {
+  const reader = new cameraReader();
 
-  reader.onload = async function (e) {
+  reader.onload = async (e) => {
     const img = new Image();
-    img.onload = async function () {
+    img.onload = async () => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
@@ -219,13 +222,27 @@ async function splitAndSendToOCR(file: File) {
             data: { text },
           } = await worker.recognize(imageData);
           const word = text;
-          ocrResults.push(word.replace(/[^a-zA-Z]/g, '').toLowerCase());
+          reader.storage.push(word.replace(/[^a-zA-Z]/g, '').toLowerCase());
         }
       }
       await worker.terminate();
+      searchParams.set('words', JSON.stringify(reader.storage))
+      setStateCallback(()=>{
+        return {
+            words: reader.storage
+        }
+      })
     };
     img.src = e.target!.result as string;
   };
   reader.readAsDataURL(file);
-  return ocrResults;
+  return reader
+}
+
+class cameraReader extends FileReader{
+    public storage : string[] 
+    constructor(){
+        super()
+        this.storage = []
+    }
 }
