@@ -35,7 +35,6 @@ export class CoopGameUI extends React.Component<
     ){
         wordsArray = new Array(25).fill('')
     }
-    console.log(searchParams.get('seed'))
     const boards = generateFlatCoopBoards(
       searchParams.get('seed') || getRandomSeed()
     ).map((b) =>
@@ -55,6 +54,12 @@ export class CoopGameUI extends React.Component<
       rotated: [0, 0],
       marked: {},
     };
+  }
+
+  handleWordsChange = () =>{
+    this.setState(()=>{
+        
+    })
   }
 
   regenerateTeamState = () => {
@@ -117,6 +122,79 @@ export class CoopGameUI extends React.Component<
     });
   };
 
+    splitAndSendToOCR = (file: File) => {
+    const reader = new cameraReader();
+    reader.onload = async (e) => {
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+  
+        canvas.width = img.width / 5;
+        canvas.height = img.height / 5;
+  
+        const worker = await createWorker();
+  
+        for (let row = 0; row < 5; row++) {
+          for (let col = 0; col < 5; col++) {
+            // Draw the grid square onto the canvas
+            ctx.drawImage(
+              img,
+              col * canvas.width,
+              row * canvas.height,
+              canvas.width,
+              canvas.height,
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+            // Get image data of the grid square
+            const imageData = canvas.toDataURL('image/jpeg');
+            // Perform OCR on the grid square using Tesseract.js
+            const {
+              data: { text },
+            } = await worker.recognize(imageData);
+            const word = text;
+            reader.storage.push(word.replace(/[^a-zA-Z]/g, '').toLowerCase());
+          }
+        }
+        await worker.terminate();
+
+        searchParams.set('words', JSON.stringify(reader.storage))
+        this.setState((prev)=>{
+          return {
+            board: prev.board.map((v,i)=>{
+                return {
+                    color: v.color,
+                    word: reader.storage[i]
+                }
+            }),
+            teamA: prev.teamA.map((v,i)=>{
+                return {
+                    color: v.color,
+                    word: reader.storage[i]
+                }
+            }),
+            teamB: prev.teamB.map((v,i)=>{
+                return {
+                    color: v.color,
+                    word: reader.storage[i]
+                }
+            }),
+            rotated: prev.rotated,
+            marked: prev.marked,
+          }
+        })
+      };
+      img.src = e.target!.result as string;
+    };
+    reader.readAsDataURL(file);
+    return reader
+  }
+  
+
   render() {
     return (
       <div>
@@ -148,8 +226,7 @@ export class CoopGameUI extends React.Component<
                 '#img_uploader'
               ) as HTMLInputElement;
               if (input.files?.[0]) {
-                const setStateBinded = this.setState.bind(this)                
-                const wordsReader = await splitAndSendToOCR(input.files[0], setStateBinded);
+                await this.splitAndSendToOCR(input.files[0]);
               }
             }}
           ></input>
@@ -185,60 +262,6 @@ export class CoopGameUI extends React.Component<
     );
   }
 }
-
-async function splitAndSendToOCR(file: File, setStateCallback : Function) {
-  const reader = new cameraReader();
-
-  reader.onload = async (e) => {
-    const img = new Image();
-    img.onload = async () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      canvas.width = img.width / 5;
-      canvas.height = img.height / 5;
-
-      const worker = await createWorker();
-
-      for (let row = 0; row < 5; row++) {
-        for (let col = 0; col < 5; col++) {
-          // Draw the grid square onto the canvas
-          ctx.drawImage(
-            img,
-            col * canvas.width,
-            row * canvas.height,
-            canvas.width,
-            canvas.height,
-            0,
-            0,
-            canvas.width,
-            canvas.height
-          );
-          // Get image data of the grid square
-          const imageData = canvas.toDataURL('image/jpeg');
-          // Perform OCR on the grid square using Tesseract.js
-          const {
-            data: { text },
-          } = await worker.recognize(imageData);
-          const word = text;
-          reader.storage.push(word.replace(/[^a-zA-Z]/g, '').toLowerCase());
-        }
-      }
-      await worker.terminate();
-      searchParams.set('words', JSON.stringify(reader.storage))
-      setStateCallback(()=>{
-        return {
-            words: reader.storage
-        }
-      })
-    };
-    img.src = e.target!.result as string;
-  };
-  reader.readAsDataURL(file);
-  return reader
-}
-
 class cameraReader extends FileReader{
     public storage : string[] 
     constructor(){
