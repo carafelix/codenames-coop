@@ -39,7 +39,7 @@ h1 {
   line-height: 1.1;
 }
 
-button, #cameraLabel {
+button, #cameraLabel{
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -61,7 +61,7 @@ button:hover, #cameraLabel:hover {
   border-color: #646cff;
 }
 
-#cameraLabel{
+#cameraLabel, .rotateIcon{
   padding: 0.3em 0.6em;
 }
 
@@ -73,9 +73,13 @@ button:hover, #cameraLabel:hover {
   height: 346x; 
   /* do not set it fix size... make a proper grid lazy man */
 }
-#cameraLabel > img{
+#cameraLabel > img, .rotateIcon > img{
   filter: invert(90%);
 }
+
+
+
+
 
 @-moz-document url-prefix() {
   .eye {

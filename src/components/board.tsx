@@ -5,12 +5,14 @@ import { boardProps } from '../app';
 export class Board extends React.Component<
   boardProps,
   {
+    words: string[];
     marked: any;
   }
 > {
   constructor(props: boardProps) {
     super(props);
     this.state = {
+      words: this.props.words,
       marked: {},
     };
   }
@@ -26,10 +28,8 @@ export class Board extends React.Component<
           gridTemplateRows: 'repeat(5,120px)',
         }}
       >
-        {this.props.board.map((element, i) => {
-          const strID = `${i},${this.props.board
-            .map((v) => v.color)
-            .toString()}`;
+        {this.props.board.map((color, i) => {
+          const strID = `${i},${this.props.board.toString()}`;
           let isMarked = false;
           if (this.props.marked?.[strID]) {
             isMarked = true;
@@ -38,10 +38,10 @@ export class Board extends React.Component<
             <GameCardButton
               key={strID}
               id={strID}
-              color={element.color}
+              color={color}
               marked={isMarked}
-              handleMarked={this.props.curry}
-              word={element.word}
+              handleMarked={this.props.handleMarked}
+              word={this.props.words[i]}
             />
           );
         })}

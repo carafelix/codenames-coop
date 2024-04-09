@@ -2,9 +2,6 @@ import _lodash from 'lodash';
 import Color from '../utils/colors.ts';
 import seedrandom from 'seedrandom';
 
-// if I ever want to shuffle using seeded fisher-yates algorithm
-// https://stackoverflow.com/questions/76705788/how-to-seed-lodash-random-number-generator
-
 export function getRandomSeed() {
     return Math.random().toString(36).slice(7)
 }

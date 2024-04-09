@@ -5,70 +5,52 @@ import { createWorker } from 'tesseract.js';
 import { Board } from './board';
 import noEyeImg from '../assets/no-eye.svg';
 import cameraImg from '../assets/camera.svg';
-import { cardData, teamProps, switchTriStates } from '../app';
-const searchParams = new URLSearchParams(window.location.search);
-
+import { teamProps, switchTriStates } from '../app';
+import { RotateButton } from './rotateButton';
+import Color from '../utils/colors';
 export class CoopGameUI extends React.Component<
   {},
   {
     teamSwitchButtonState: switchTriStates;
-    board: cardData[];
-    teamA: cardData[];
-    teamB: cardData[];
+    board: Color[];
+    teamA: Color[];
+    teamB: Color[];
+    words: string[];
     rotated: [number, number];
     marked: any; //:LLLLLLLLLLL
   }
 > {
   constructor(props: teamProps) {
     super(props);
+    const searchParams = new URLSearchParams(window.location.search);
 
-    if (!searchParams.get('seed')) {
-      searchParams.set('seed', getRandomSeed());
-      window.history.pushState({}, '', '?' + searchParams.toString());
+    const seed = searchParams.get('seed') || getRandomSeed();
+    let wordsArray = JSON.parse(searchParams.get('words') || `[]`);
+
+    if (
+      wordsArray.length !== 25 ||
+      Object.getPrototypeOf(wordsArray) !== Object.getPrototypeOf([]) ||
+      wordsArray.every((i: any) => typeof i !== 'string')
+    ) {
+      wordsArray = new Array(25).fill('');
     }
-    let wordsArray = (JSON.parse(searchParams.get('words') || `[]`))
-    if(wordsArray.length !== 25 ||
-       Object.getPrototypeOf(wordsArray) !== Object.getPrototypeOf([]) ||
-       wordsArray.every((i:any)=>typeof i !== 'string')
-    ){
-        wordsArray = new Array(25).fill('')
-    }
-    const boards = generateFlatCoopBoards(
-      searchParams.get('seed') || getRandomSeed()
-    ).map((b) =>
-      b.map((c,i) => {
-        return {
-          color: c,
-          word: wordsArray[i],
-        };
-      })
-    );
+
+    const boards = generateFlatCoopBoards(seed)
 
     this.state = {
       teamSwitchButtonState: 'off',
       board: boards[0],
       teamA: boards[0],
       teamB: boards[1],
+      words: wordsArray,
       rotated: [0, 0],
       marked: {},
     };
   }
-
+  // rework to not use url params on regeneration, only while entering the link first time or with a join button
   regenerateTeamState = () => {
     this.setState((prevState) => {
-      searchParams.set('seed', getRandomSeed());
-      window.history.pushState({}, '', '?' + searchParams.toString());
-      const words = JSON.parse(searchParams.get('words') || JSON.stringify(new Array(25).fill('')))
-      const boards = generateFlatCoopBoards(
-        searchParams.get('seed') || getRandomSeed()
-      ).map((b) =>
-        b.map((c, i) => {
-          return {
-            color: c,
-            word: words[i],
-          };
-        })
-      );
+      const boards = generateFlatCoopBoards(getRandomSeed())
       return {
         board:
           prevState.teamSwitchButtonState === 'team-a' ? boards[0] : boards[1],
@@ -79,20 +61,13 @@ export class CoopGameUI extends React.Component<
     });
   };
 
-  handleHistoryNavigation = (direction : string) =>{
-    if(direction === 'prev'){
-        window.history.back()
-    } else window.history.forward();
-  }
+  handleHistoryNavigation = () => {};
 
   handleToggleChange = (childState: switchTriStates) => {
-    this.setState((prev) => {
+    this.setState(() => {
       return {
         teamSwitchButtonState: childState,
         board: childState === 'team-a' ? this.state.teamA : this.state.teamB,
-        teamA: prev.teamA,
-        teamB: prev.teamB,
-        marked: prev.marked,
       };
     });
   };
@@ -108,18 +83,20 @@ export class CoopGameUI extends React.Component<
       }
 
       return {
-        teamSwitchButtonState: prev.teamSwitchButtonState,
-        board: prev.board,
-        teamA: prev.teamA,
-        teamB: prev.teamB,
         marked: mergedMarked,
       };
     });
   };
+  cleanWords = () => {
+    this.setState(()=>{
+      return {
+        words: []
+      }
+    })
+  }
+  // TOO MUCH COUPLING
 
-  // TOO MUCH COUPLING 
-
-    splitAndSendToOCR = (file: File) => {
+  splitAndSendToOCR = (file: File) => {
     const reader = new cameraReader();
     reader.onload = async (e) => {
       const img = new Image();
@@ -127,12 +104,12 @@ export class CoopGameUI extends React.Component<
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
-  
+
         canvas.width = img.width / 5;
         canvas.height = img.height / 5;
-  
+
         const worker = await createWorker();
-  
+
         for (let row = 0; row < 5; row++) {
           for (let col = 0; col < 5; col++) {
             // Draw the grid square onto the canvas
@@ -158,35 +135,18 @@ export class CoopGameUI extends React.Component<
           }
         }
         await worker.terminate();
-        searchParams.set('words', JSON.stringify(reader.storage))
-        this.setState((prev)=>{
-            const teamA_mergedWords = prev.teamA.map((v,i)=>{
-                return {
-                    color: v.color,
-                    word: reader.storage[i]
-                }
-            })
-            const teamB_mergedWords = prev.teamB.map((v,i)=>{
-                return {
-                    color: v.color,
-                    word: reader.storage[i]
-                }
-            })
+        
+        this.setState(() => {
           return {
-            board: prev.teamSwitchButtonState === 'team-a' ? teamA_mergedWords : teamB_mergedWords,
-            teamA: teamA_mergedWords,
-            teamB: teamB_mergedWords,
-            rotated: prev.rotated,
-            marked: prev.marked,
-          }
-        })
+            words: reader.storage
+          };
+        });
       };
       img.src = e.target!.result as string;
     };
     reader.readAsDataURL(file);
-    return reader
-  }
-  
+    return reader;
+  };
 
   render() {
     return (
@@ -200,6 +160,8 @@ export class CoopGameUI extends React.Component<
             gap: '1em',
           }}
         >
+          <RotateButton angle={0} rotateCurrentBoardHandler={() => {}} />
+
           <ElementOptionSwitch onSignalChange={this.handleToggleChange} />
 
           <label
@@ -227,11 +189,12 @@ export class CoopGameUI extends React.Component<
 
         {this.state.teamSwitchButtonState !== 'off' ? (
           <Board
+            key={this.state.board.flat().toString()} // must be a string flat boardA,boardB : boardB,boardA
             board={this.state.board}
             team={this.state.board === this.state.teamA ? 'a' : 'b'}
-            key={this.state.board.flat().toString()} // must be a string flat boardA,boardB : boardB,boardA
+            words={this.state.words}
             marked={this.state.marked}
-            curry={this.handleMarkedChanges}
+            handleMarked={this.handleMarkedChanges}
           />
         ) : (
           <div style={{ display: 'flex' }}>
@@ -247,18 +210,22 @@ export class CoopGameUI extends React.Component<
             gap: '0.5em',
           }}
         >
-          <button onClick={()=>this.handleHistoryNavigation('prev')}>previous</button>
+          <button onClick={this.cleanWords}>clean</button>
           <button onClick={this.regenerateTeamState}>regenerate</button>
-          <button onClick={()=>this.handleHistoryNavigation('next')}>next</button>
+          <button onClick={()=>{}}>share</button>
         </div>
       </div>
     );
   }
 }
-class cameraReader extends FileReader{
-    public storage : string[] 
-    constructor(){
-        super()
-        this.storage = []
-    }
+class cameraReader extends FileReader {
+  public storage: string[];
+  constructor() {
+    super();
+    this.storage = [];
+  }
+}
+
+function generateURL(seed : string, words : string[]){
+
 }
