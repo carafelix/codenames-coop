@@ -8,6 +8,7 @@ import cameraImg from '../assets/camera.svg';
 import { teamProps, switchTriStates } from '../app';
 import { RotateButton } from './rotateButton';
 import Color from '../utils/colors';
+import { ShareDialog } from './popups/shareDialog';
 export class CoopGameUI extends React.Component<
   {},
   {
@@ -16,7 +17,9 @@ export class CoopGameUI extends React.Component<
     teamA: Color[];
     teamB: Color[];
     words: string[];
+    seed: string;
     rotated: [number, number];
+    showShareDialog: boolean;
     marked: any; //:LLLLLLLLLLL
   }
 > {
@@ -27,15 +30,11 @@ export class CoopGameUI extends React.Component<
     const seed = searchParams.get('seed') || getRandomSeed();
     let wordsArray = JSON.parse(searchParams.get('words') || `[]`);
 
-    if (
-      wordsArray.length !== 25 ||
-      Object.getPrototypeOf(wordsArray) !== Object.getPrototypeOf([]) ||
-      wordsArray.every((i: any) => typeof i !== 'string')
-    ) {
-      wordsArray = new Array(25).fill('');
+    if (!checkWordsArrayIsValid(wordsArray)) {
+      wordsArray = [];
     }
 
-    const boards = generateFlatCoopBoards(seed)
+    const boards = generateFlatCoopBoards(seed);
 
     this.state = {
       teamSwitchButtonState: 'off',
@@ -45,18 +44,22 @@ export class CoopGameUI extends React.Component<
       words: wordsArray,
       rotated: [0, 0],
       marked: {},
+      showShareDialog: false,
+      seed: seed,
     };
   }
   // rework to not use url params on regeneration, only while entering the link first time or with a join button
   regenerateTeamState = () => {
     this.setState((prevState) => {
-      const boards = generateFlatCoopBoards(getRandomSeed())
+      const seed = getRandomSeed();
+      const boards = generateFlatCoopBoards(seed);
       return {
         board:
           prevState.teamSwitchButtonState === 'team-a' ? boards[0] : boards[1],
         teamA: boards[0],
         teamB: boards[1],
         marked: {},
+        seed: seed,
       };
     });
   };
@@ -87,13 +90,22 @@ export class CoopGameUI extends React.Component<
       };
     });
   };
-  cleanWords = () => {
-    this.setState(()=>{
+
+  handleShareDialog = () => {
+    this.setState((prev)=>{
       return {
-        words: []
+        showShareDialog: !prev.showShareDialog
       }
     })
   }
+
+  cleanWords = () => {
+    this.setState(() => {
+      return {
+        words: [],
+      };
+    });
+  };
   // TOO MUCH COUPLING
 
   splitAndSendToOCR = (file: File) => {
@@ -135,10 +147,10 @@ export class CoopGameUI extends React.Component<
           }
         }
         await worker.terminate();
-        
+
         this.setState(() => {
           return {
-            words: reader.storage
+            words: reader.storage,
           };
         });
       };
@@ -150,7 +162,14 @@ export class CoopGameUI extends React.Component<
 
   render() {
     return (
-      <div>
+      <div className='coop'>
+        {this.state.showShareDialog && (
+          <ShareDialog
+            params={generateSearchParams(this.state.seed, this.state.words)}
+            handleClose = {this.handleShareDialog}
+          />
+        )}
+
         <div
           style={{
             display: 'flex',
@@ -212,7 +231,7 @@ export class CoopGameUI extends React.Component<
         >
           <button onClick={this.cleanWords}>clean</button>
           <button onClick={this.regenerateTeamState}>regenerate</button>
-          <button onClick={()=>{}}>share</button>
+          <button onClick={this.handleShareDialog}>share</button>
         </div>
       </div>
     );
@@ -226,6 +245,19 @@ class cameraReader extends FileReader {
   }
 }
 
-function generateURL(seed : string, words : string[]){
+function generateSearchParams(seed: string, words: string[]) {
+  const p = new URLSearchParams();
+  p.set('seed', seed);
+  if (checkWordsArrayIsValid(words)) {
+    p.set('words', JSON.stringify(words));
+  }
+  return p;
+}
 
+function checkWordsArrayIsValid(words: string[]) {
+  return !(
+    words.length !== 25 ||
+    Object.getPrototypeOf(words) !== Object.getPrototypeOf([]) ||
+    words.every((i: any) => typeof i !== 'string')
+  );
 }

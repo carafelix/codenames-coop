@@ -6,7 +6,7 @@ export class GameCardButton extends React.Component<{
   marked: boolean;
   id: string;
   handleMarked: Function;
-  word: string | null;
+  word?: string;
 }> {
   render() {
     return (

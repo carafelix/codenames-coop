@@ -65,7 +65,6 @@ button:hover, #cameraLabel:hover {
   padding: 0.3em 0.6em;
 }
 
-
 .eye{
   flex: 1;
   filter: invert(100%);
@@ -73,7 +72,7 @@ button:hover, #cameraLabel:hover {
   height: 346x; 
   /* do not set it fix size... make a proper grid lazy man */
 }
-#cameraLabel > img, .rotateIcon > img{
+#cameraLabel > img, .rotateIcon > img, button > img{
   filter: invert(90%);
 }
 
