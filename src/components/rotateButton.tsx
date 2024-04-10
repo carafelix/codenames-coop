@@ -1,6 +1,7 @@
 import React from 'react';
 import rotate90 from '../assets/rotate90.svg';
 
+
 export const RotateButton: React.FC<{
   angle: number;
   rotateCurrentBoardHandler: Function;
@@ -9,10 +10,9 @@ export const RotateButton: React.FC<{
     <>
       <button className="rotateIcon" onClick={() => rotateCurrentBoardHandler}>
         <img
-          datatype="hola"
           src={rotate90}
           alt="rotate symbol"
-          style={{ transform: `rotate(${angle}deg)` }}
+          style={{ transform: `rotate(${angle}deg)`}}
         />
       </button>
     </>

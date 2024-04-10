@@ -25,6 +25,11 @@ a:hover {
   color: #535bf2;
 }
 
+.board{
+  max-width: 600px;
+  max-height: 600px;
+}
+
 body {
   margin: 0;
   display: flex;
@@ -68,24 +73,13 @@ button:hover, #cameraLabel:hover {
 .eye{
   flex: 1;
   filter: invert(100%);
-  width: 346px;
-  height: 346x; 
+  width: min(calc(120px * 5), calc(19vw * 5));
+  height: min(calc(120px * 5), calc(19vw * 5)); 
   /* do not set it fix size... make a proper grid lazy man */
 }
-#cameraLabel > img, .rotateIcon > img, button > img{
+#cameraLabel > img, .rotateIcon > img {
   filter: invert(90%);
 }
-
-
-
-
-
-@-moz-document url-prefix() {
-  .eye {
-    width: 430px;
-    height: 430px; 
-  }
-}  
 
 @media (prefers-color-scheme: light) {
   :root {
@@ -98,7 +92,7 @@ button:hover, #cameraLabel:hover {
   button, #cameraLabel {
     background-color: rgb(230, 230, 230);
   }
-  .eye, #cameraLabel > img{
+  .eye, #cameraLabel > img, .rotateIcon > img{
     filter: none;
   }
 }

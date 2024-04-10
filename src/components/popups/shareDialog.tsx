@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import copyImg from './copy.svg'
 import shareImg from './share.svg'
-import check from './check.svg'
 import './popup.css';
 import QRCode from 'react-qr-code';
 
@@ -10,7 +9,7 @@ export const ShareDialog: React.FC<{
   handleClose: Function;
 }> = ({ params, handleClose }) => {
 
-  const [copy, markCopied] = useState(copyImg)
+  const [shareIcon, markCopied] = useState(shareImg)
 
   const url = `${window.location.origin}/${
     window.location.pathname.split('/')[1]
@@ -25,8 +24,8 @@ export const ShareDialog: React.FC<{
   return (
     <div className="popup-container">
       <div className='popup'>
-        <div style={{display:'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-          <span>Scan, copy or share</span>
+        <div style={{display:'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1em'}}>
+          <span>Scan the QR or use the button bellow</span>
           <button onClick={()=>handleClose()} style={{padding: '7px 14px'}}>
             x
           </button>
@@ -45,22 +44,19 @@ export const ShareDialog: React.FC<{
         
         <div style={{display:'flex', justifyContent: 'center', gap: '0.2em'}}>
           <button onClick={()=>{
-            navigator.share(shareData)
+            try {
+              navigator.share(shareData)
+            } catch (error) {
+              navigator.clipboard.writeText(url)
+              if(shareIcon === shareImg){
+                markCopied(copyImg)
+                setTimeout(() => {
+                  markCopied(shareImg)
+                }, 2000);
+              }
+            }
           }}>
-            <img src={shareImg} alt="copy" />
-          </button>
-          <textarea name="url" id="shareURL" cols={15} rows={2}
-            style={{resize: 'none', color: 'black'}}
-            defaultValue={url}>
-          </textarea>
-          <button onClick={()=>{
-            navigator.clipboard.writeText(url)
-            markCopied(check)
-            setTimeout(() => {  
-              markCopied(copy)
-            }, 2000);
-          }}>
-            <img src={copy} alt="copy" />
+            <img className='popupIcon' src={shareIcon} alt="copy" />
           </button>
         </div>
       </div>

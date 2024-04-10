@@ -27,3 +27,16 @@
   .popup-container {
     backdrop-filter: blur(5px);
   }
+  
+  .popupIcon{
+    filter: invert(90%);
+  }
+
+  @media ( prefers-color-scheme: light ){
+    textarea {
+      color: black;
+    }
+    .popupIcon {
+      filter: none;
+    }
+  }

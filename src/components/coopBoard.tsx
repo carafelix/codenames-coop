@@ -108,7 +108,7 @@ export class CoopGameUI extends React.Component<
   };
   // TOO MUCH COUPLING
 
-  splitAndSendToOCR = (file: File) => {
+  splitAndSendToOCR = async (file: File) => {
     const reader = new cameraReader();
     reader.onload = async (e) => {
       const img = new Image();
@@ -200,7 +200,7 @@ export class CoopGameUI extends React.Component<
                 '#img_uploader'
               ) as HTMLInputElement;
               if (input.files?.[0]) {
-                await this.splitAndSendToOCR(input.files[0]);
+                this.splitAndSendToOCR(input.files[0]);
               }
             }}
           ></input>

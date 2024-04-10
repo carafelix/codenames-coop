@@ -23,9 +23,9 @@ export class Board extends React.Component<
         className={`board ${this.props.team}`}
         style={{
           display: 'grid',
-          gap: '0.3em',
-          gridTemplateColumns: 'repeat(5,120px)',
-          gridTemplateRows: 'repeat(5,120px)',
+          gap: '0.1em',
+          gridTemplateColumns: 'repeat(5,min(120px,19vw))',
+          gridTemplateRows: 'repeat(5,min(120px,19vw))'
         }}
       >
         {this.props.board.map((color, i) => {
