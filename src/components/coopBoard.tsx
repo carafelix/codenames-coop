@@ -5,7 +5,7 @@ import { createWorker } from 'tesseract.js';
 import { Board } from './board';
 import noEyeImg from '../assets/no-eye.svg';
 import cameraImg from '../assets/camera.svg';
-import { teamProps, switchTriStates } from '../app';
+import { teamProps, switchTriStates, angleStates } from '../app';
 import { RotateButton } from './rotateButton';
 import Color from '../utils/colors';
 import { ShareDialog } from './popups/shareDialog';
@@ -18,7 +18,7 @@ export class CoopGameUI extends React.Component<
     teamB: Color[];
     words: string[];
     seed: string;
-    rotated: [number, number];
+    rotated: [angleStates, angleStates];
     showShareDialog: boolean;
     marked: any; //:LLLLLLLLLLL
   }
@@ -64,8 +64,6 @@ export class CoopGameUI extends React.Component<
     });
   };
 
-  handleHistoryNavigation = () => {};
-
   handleToggleChange = (childState: switchTriStates) => {
     this.setState(() => {
       return {
@@ -92,12 +90,12 @@ export class CoopGameUI extends React.Component<
   };
 
   handleShareDialog = () => {
-    this.setState((prev)=>{
+    this.setState((prev) => {
       return {
-        showShareDialog: !prev.showShareDialog
-      }
-    })
-  }
+        showShareDialog: !prev.showShareDialog,
+      };
+    });
+  };
 
   cleanWords = () => {
     this.setState(() => {
@@ -160,13 +158,29 @@ export class CoopGameUI extends React.Component<
     return reader;
   };
 
+  handleRotate = () => {
+    this.setState((prev) => {
+      let [a, b] = [prev.rotated[0], prev.rotated[1]];
+
+      if (this.state.board === this.state.teamA) {
+        a = (a + 1) % 4 
+      } else if (this.state.board === this.state.teamB) {
+        b = (b + 1) % 4
+      }
+
+      return {
+        rotated: [a, b] as [angleStates, angleStates],
+      };
+    });
+  };
+
   render() {
     return (
-      <div className='coop'>
+      <div className="coop">
         {this.state.showShareDialog && (
           <ShareDialog
             params={generateSearchParams(this.state.seed, this.state.words)}
-            handleClose = {this.handleShareDialog}
+            handleClose={this.handleShareDialog}
           />
         )}
 
@@ -179,7 +193,16 @@ export class CoopGameUI extends React.Component<
             gap: '1em',
           }}
         >
-          <RotateButton angle={0} rotateCurrentBoardHandler={() => {}} />
+          <RotateButton
+            angleState={
+              this.state.teamSwitchButtonState === 'team-a'
+                ? this.state.rotated[0]
+                : this.state.teamSwitchButtonState === 'team-b'
+                ? this.state.rotated[1]
+                : 0
+            }
+            rotateCurrentBoardHandler={this.handleRotate}
+          />
 
           <ElementOptionSwitch onSignalChange={this.handleToggleChange} />
 
@@ -214,6 +237,11 @@ export class CoopGameUI extends React.Component<
             words={this.state.words}
             marked={this.state.marked}
             handleMarked={this.handleMarkedChanges}
+            rotate={
+              this.state.board === this.state.teamA
+                ? this.state.rotated[0]
+                : this.state.rotated[1]
+            }
           />
         ) : (
           <div style={{ display: 'flex' }}>

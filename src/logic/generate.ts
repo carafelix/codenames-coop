@@ -64,7 +64,7 @@ export function getFlatBoard(grays = 13, greens = 9, blacks = 3) {
     ]
 }
 
-function swapTwo(array: Color[], index1: number, index2: number) {
-    [array[index1], array[index2]] = [array[index2], array[index1]];
-    return array
-}
+// function swapTwo(array: Color[], index1: number, index2: number) {
+//     [array[index1], array[index2]] = [array[index2], array[index1]];
+//     return array
+// }
