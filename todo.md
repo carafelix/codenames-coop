@@ -1,0 +1,3 @@
+- add window for editing the photo position at word import time
+- allow for editing the words with long press, sync between the two sides
+- add count to already found spies

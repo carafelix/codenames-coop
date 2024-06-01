@@ -1,6 +1,10 @@
 # Codenames Coop
 
-### todo
+![](./src/assets/codenames.webm.gif)
 
-- sync state between marked cardButtons and parent state and make it persistent
-- add count to already found spies
+## Features
+
+- Allows you to play the coop version of the game with the base game.
+- Import words via photo scan (Matrix OCR approach, still needs some tweaks)
+- Share the board via QR
+- Rotate, mark etc
