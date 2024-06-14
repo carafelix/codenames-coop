@@ -8,3 +8,5 @@
 - Import words via photo scan (Matrix OCR approach, still needs some tweaks)
 - Share the board via QR
 - Rotate, mark etc
+
+## [TO-DO](/todo.md)
